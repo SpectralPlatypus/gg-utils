@@ -33,9 +33,10 @@ namespace GGUtils
             }
 
             byte[] fileBuf = File.ReadAllBytes(fileName);
+            Span<byte> fileSpan = new(fileBuf);
 
-            GGDecoder.SaveDecode(fileBuf);
-            GGDictionary saveNode = new GGParser2(fileBuf).Parse();
+            GGDecoder.SaveDecode(fileSpan);
+            GGDictionary saveNode = new GGParser(fileSpan).Parse();
 
             outputPath = Path.Combine(outputPath, Path.ChangeExtension(Path.GetFileName(fileName), "json"));
 
@@ -50,7 +51,6 @@ namespace GGUtils
 
         public static void ShowHelp()
         {
-            var appName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
             Console.WriteLine("USAGE: ggutils -l|-x|-s [wildcard] [OPTIONS] [filename]");
             Console.WriteLine("\t-l, --list: List files in archive.");
             Console.WriteLine("\t-s, --save: Save contents of a savefile in JSON format. File name can be a slot number (1-9) or path to the save file.");

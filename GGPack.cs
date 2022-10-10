@@ -25,17 +25,13 @@ namespace GGUtils
 
             reader.BaseStream.Seek(offs, SeekOrigin.Begin);
             byte[] backingBuffer = reader.ReadBytes(len);
+            Span<byte> bSpan = new(backingBuffer);
 
             GGDecoder.GGPackDecode(backingBuffer);
+            GGObject retval = new GGParser(bSpan).Parse()["files"];
 
-            using MemoryStream ms = new(backingBuffer);
-            using BinaryReader br = new(ms);
-
-            GGParser gp = new GGParser(br);
-            GGObject retval = gp.Parse()["files"];
-
-            if (retval is GGArray a)
-                fileList = a;
+            if (retval is GGArray array)
+                fileList = array;
             else
                 throw new InvalidCastException("Expected files array");
         }
@@ -99,10 +95,9 @@ namespace GGUtils
             // JSON and Wimpy are stored as serialized GGObjects
             if (ext == ".json" || ext == ".wimpy")
             {
-                using BinaryReader pReader = new(new MemoryStream(buffer));
                 using var fs = File.Create(outputPath);
 
-                GGDictionary payload = new GGParser(pReader).Parse();
+                GGDictionary payload = new GGParser(buffer).Parse();
 
                 JsonWriterOptions writerOptions = new() { Indented = true };
                 using Utf8JsonWriter writer = new(fs, writerOptions);
