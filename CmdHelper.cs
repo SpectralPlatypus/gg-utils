@@ -35,9 +35,7 @@ namespace GGUtils
             byte[] fileBuf = File.ReadAllBytes(fileName);
 
             GGDecoder.SaveDecode(fileBuf);
-
-            using BinaryReader br = new(new MemoryStream(fileBuf));
-            GGDictionary saveNode = new GGParser(br).Parse();
+            GGDictionary saveNode = new GGParser2(fileBuf).Parse();
 
             outputPath = Path.Combine(outputPath, Path.ChangeExtension(Path.GetFileName(fileName), "json"));
 
