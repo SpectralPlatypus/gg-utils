@@ -1,7 +1,12 @@
 ﻿using System.IO.Compression;
 using System.IO.Enumeration;
 using System.Text.Json;
-
+using BCnEncoder.Decoder;
+using BCnEncoder.Shared.ImageFiles;
+using System.Runtime.InteropServices;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using BCnEncoder.Shared;
 
 namespace GGUtils
 {
@@ -90,8 +95,8 @@ namespace GGUtils
 
             /*
              * TODO: What even is yack?
-             * Figure out why KTX headers are invalid (most can't be converted)
              */
+
             // JSON and Wimpy are stored as serialized GGObjects
             if (ext == ".json" || ext == ".wimpy")
             {
@@ -107,19 +112,26 @@ namespace GGUtils
             }
             else if (ext == ".ktxbz")
             {
-                Span<byte> zBuf = stackalloc byte[1024];
-
-                outputPath = Path.ChangeExtension(outputPath, "ktx");
-                using FileStream outFs = File.OpenWrite(outputPath);
+                outputPath = Path.ChangeExtension(outputPath, "png");
+                using MemoryStream outFs = new();
 
                 using ZLibStream zStream = new(new MemoryStream(buffer), CompressionMode.Decompress);
-                int len = 0;
-                while ((len = zStream.Read(zBuf)) > 0)
-                {
-                    outFs.Write(zBuf);
-                }
+                zStream.CopyTo(outFs);
+                outFs.Position = 0;
+
+                BcDecoder decode = new();
+                var ktx = KtxFile.Load(outFs);
+                var image = decode.Decode(ktx);
+
+                int width = (int)ktx.MipMaps[0].Width;
+                int height = (int)ktx.MipMaps[0].Height;
+
+                var byteArray = MemoryMarshal.AsBytes<ColorRgba32>(image);
+
+                var bmp = Image.LoadPixelData<Rgba32>(byteArray, width, height);
+                bmp.SaveAsPng(outputPath);
             }
-            else //if (ext == ".dinky" || ext == ".png") // Plain files (txt, png, atlas etc)
+            else //Plain files (txt, png, atlas etc)
             {
                 using var fs = File.Create(outputPath);
                 fs.Write(buffer, 0, size);
