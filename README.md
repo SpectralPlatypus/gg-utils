@@ -2,6 +2,14 @@
 
 This tools allows data/file extraction from saves files and archives (.ggpack) used by the game [Return to Monkey Island](https://returntomonkeyisland.com/).
 
+Aim of the project was largely re-learning C# (and its newer features), expect strange conventions and jank.
+
+## Dependencies
+
+* [Mono.Options](https://www.nuget.org/packages/Mono.Options/)
+* [BCnEncoder.NET](https://github.com/Nominom/BCnEncoder.NET)
+* [ImageSharp](https://github.com/SixLabors/ImageSharp)
+
 ## Building & Running
 
 * Building executable:
